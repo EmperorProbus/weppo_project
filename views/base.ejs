@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Gaming Time</title>
+        <script src="/socket.io/socket.io.js"></script>
+    </head>
+    <body>
+        <div id="nick_room" style="">
+            <input type="text" id="nickname" />
+            <button id=confirm_nick>CONFIRM NICKNAME</button>
+        </div>
+        <div id="rooms" style="display: none">
+            <p id="test">List of available rooms:</p>
+            <select id="list_of_rooms" multiple="multiple">
+            </select>
+            <br />
+            <button id="join_room">JOIN SELECTED ROOM</button>
+            <br />
+            <input type="text" id="room_name" />
+            <button id="create_room">CREATE YOUR OWN ROOM</button>
+        </div>
+        <div id="naming" style="display: none">
+            <p id="name"></p>
+        </div>
+        <div id="board" style="display: none">
+            <button type="button" id="b1"></button>
+            <button type="button" id="b2"></button>
+            <button type="button" id="b3"></button>
+            <br /><br />
+            <button type="button" id="b4"></button>
+            <button type="button" id="b5"></button>
+            <button type="button" id="b6"></button>
+            <br /><br />
+            <button type="button" id="b7"></button>
+            <button type="button" id="b8"></button>
+            <button type="button" id="b9"></button>
+
+            <br /><br />
+        </div>
+        <div id="start_button" style="display: none">
+            <button type="button" id="start">START GAME</button>
+        </div>
+        <div id="game_info">
+            <p id="game_text"></p>
+            <p id="enemy_info"></p>
+        </div>
+
+        <script>
+            var socket = io();
+
+            var move_flag = 0;
+            var pgame = document.getElementById("game_text");
+            var penemy = document.getElementById("enemy_info");
+
+            function removeOptions(selectElement) {
+                var i, L = selectElement.options.length - 1;
+                for(i = L; i >= 0; i--) {
+                    selectElement.remove(i);
+                }
+            }
+
+
+            socket.on("display_move", function(button, text) {
+                change_board(button, text);
+            });
+
+            socket.on("other_is_waiting", function(nick) {
+                pgame.textContent = nick + " wants to start a game!";
+            });
+
+            socket.on("your_move", function(nick) {
+                move_flag = 1;
+                pgame.textContent = "YOUR MOVE!"
+                penemy.textContent = "You are playing against " + nick;
+            });
+
+            socket.on("you_won", function(nick) {
+                pgame.textContent = "YOU WON!";
+                penemy.textContent = "You were playing against " + nick;
+            })
+
+            socket.on("you_lost", function(nick) {
+                pgame.textContent = "YOU LOST!"
+                penemy.textContent = "You were playing against " + nick;
+            })
+
+            socket.on("opponent_first", function(nick) {
+                pgame.textContent = "Waiting for opponent to move...";
+                penemy.textContent = "You are playing against " + nick;
+            })
+
+            socket.on("new_appearance", function(rooms) {
+                var list = document.getElementById("list_of_rooms");
+                removeOptions(list);
+                for (var element in rooms) {
+                    var option = document.createElement("option");
+                    option.text = element.toString();
+                    list.add(option)
+                }
+            })
+
+            socket.on("joined_room", function(name) {
+                var rn = document.getElementById("name")
+                var drn = document.getElementById("naming")
+                rn.textContent = "You are currently in room: " + name;
+                drn.setAttribute("style", "");
+            })
+
+            var but = document.getElementById("join_room")
+            but.addEventListener("click", () => {
+                var list = document.getElementById("list_of_rooms")
+                var selectedValue = list.options[list.selectedIndex].value
+                socket.emit("joining_room", selectedValue)
+                var b = document.getElementById("board");
+                var st = document.getElementById("start_button");
+                var ro = document.getElementById("rooms");
+                b.setAttribute("style", "");
+                st.setAttribute("style", "");
+                ro.setAttribute("style", "display: none");
+            })
+
+
+            var nick = document.getElementById("nickname")
+            var confirm = document.getElementById("confirm_nick")
+            confirm.addEventListener("click", () => {
+                socket.emit("chose_nickname", nick.value);
+                var con = document.getElementById("nick_room");
+                var ro = document.getElementById("rooms");
+                con.setAttribute("style", "display: none");
+                ro.setAttribute("style", "");
+            })
+            
+            var b1 = document.getElementById("b1");
+            b1.addEventListener("click", () => {
+                if ((b1.innerText == "") && (move_flag == 1)) {
+                    socket.emit("made_move", "b1", socket.id)
+                    move_flag = 0;
+                    pgame.textContent = "Waiting for opponent to move...";
+                }
+            })
+            var b2 = document.getElementById("b2");
+            b2.addEventListener("click", () => {
+                if (b2.innerText == "" && move_flag == 1) {
+                    socket.emit("made_move", "b2", socket.id)
+                    move_flag = 0;
+                    pgame.textContent = "Waiting for opponent to move...";
+                }
+            })
+            var b3 = document.getElementById("b3");
+            b3.addEventListener("click", () => {
+                if (b3.innerText == "" && move_flag == 1) {
+                    socket.emit("made_move", "b3", socket.id)
+                    move_flag = 0;
+                    pgame.textContent = "Waiting for opponent to move...";
+                }
+            })
+            var b4 = document.getElementById("b4");
+            b4.addEventListener("click", () => {
+                if (b4.innerText == "" && move_flag == 1) {
+                    socket.emit("made_move", "b4", socket.id)
+                    move_flag = 0;
+                    pgame.textContent = "Waiting for opponent to move...";
+                }
+            })
+            var b5 = document.getElementById("b5");
+            b5.addEventListener("click", () => {
+                if (b5.innerText == "" && move_flag == 1) {
+                    socket.emit("made_move", "b5", socket.id)
+                    move_flag = 0;
+                    pgame.textContent = "Waiting for opponent to move...";
+                }
+            })
+            var b6 = document.getElementById("b6");
+            b6.addEventListener("click", () => {
+                if (b6.innerText == "" && move_flag == 1) {
+                    socket.emit("made_move", "b6", socket.id)
+                    move_flag = 0;
+                    pgame.textContent = "Waiting for opponent to move...";
+                }
+            })
+            var b7 = document.getElementById("b7");
+            b7.addEventListener("click", () => {
+                if (b7.innerText == "" && move_flag == 1) {
+                    socket.emit("made_move", "b7", socket.id)
+                    move_flag = 0;
+                    pgame.textContent = "Waiting for opponent to move...";
+                }
+            })
+            var b8 = document.getElementById("b8");
+            b8.addEventListener("click", () => {
+                if (b8.innerText == "" && move_flag == 1) {
+                    socket.emit("made_move", "b8", socket.id)
+                    move_flag = 0;
+                    pgame.textContent = "Waiting for opponent to move...";
+                }
+            })
+            var b9 = document.getElementById("b9");
+            b9.addEventListener("click", () => {
+                if (b9.innerText == "" && move_flag == 1) {
+                    socket.emit("made_move", "b9", socket.id)
+                    move_flag = 0;
+                    pgame.textContent = "Waiting for opponent to move...";
+                }
+            })
+
+            function change_board(element_id, text) {
+                (document.getElementById(element_id)).innerText = text;
+            }
+
+            var rom = document.getElementById("create_room");
+            var rom_name = document.getElementById("room_name")
+            rom.addEventListener("click", () => {
+                socket.emit("new_room", rom_name.value)
+                var b = document.getElementById("board");
+                var st = document.getElementById("start_button");
+                var ro = document.getElementById("rooms");
+                b.setAttribute("style", "");
+                st.setAttribute("style", "");
+                ro.setAttribute("style", "display: none");
+            })
+
+            var start = document.getElementById("start");
+            var start_flag = 0;
+            start.addEventListener("click", () => {
+                if (start_flag == 0) {
+                    socket.emit("wants-to-start", socket.id);
+                    start_flag = 1;
+                    pgame.textContent = "Waiting for opponent to start...";
+                    var st = document.getElementById("start_button");
+                    st.setAttribute("style", "display: none");
+                }
+            })
+        </script>
+    </body>
+</html>
