@@ -32,21 +32,10 @@ function winning_combo(player, board) {
 }
 
 io.on('connection', function(socket) {
-    //console.log('client connected: ' + socket.id);
-    var newrooms = {}
-        for(var element in rooms) {
-            console.log(element)
-            if (element["capacity"] == 1) {
-                newrooms[element.toString()] = element;
-            }
-        }
-    io.to(socket.id).emit("new_appearance", newrooms);
-    console.log(rooms)
+    io.to(socket.id).emit("new_appearance", rooms);
 
     socket.on("chose_nickname", function(nick) {
         nicknames[socket.id] = nick;
-        //console.log(socket.id + "'s nickname is: " + nick);
-        //console.log(nicknames)
     });
 
     socket.on("new_room", function(name) {
@@ -56,28 +45,20 @@ io.on('connection', function(socket) {
         rooms[name] = room;
         socket.join(name);
         io.to(socket.id).emit("joined_room", name);
-        var newrooms = {}
-        for(var element in rooms) {
-            if (element["capacity"] == 1) {
-                newrooms[element.toString()] = element;
-            }
-        }
-        io.emit("new_appearance", newrooms);
-        console.log(rooms)
+        io.emit("new_appearance", rooms);
     })
 
     socket.on("joining_room", function(name) {
         socket.join(name);
         rooms[name]["capacity"] = 2;
         io.to(socket.id).emit("joined_room", name);
-        console.log(rooms)
     })
 
 
     socket.on("made_move", function(button, id) {
         var rn = Array.from(socket.rooms)[1]
         if (rooms[rn]["dict"]["1"] == id) {
-            io.emit("display_move", button, "X");
+            io.to(rn).emit("display_move", button, "X");
             rooms[rn]["board"][button] = "X";
             if (winning_combo("X", rooms[rn]["board"])) {
                 io.to(rooms[rn]["dict"]["1"]).emit("you_won", nicknames[rooms[rn]["dict"]["2"]]);
@@ -88,7 +69,7 @@ io.on('connection', function(socket) {
             }
         }
         else {
-            io.emit("display_move", button, "O");
+            io.to(rn).emit("display_move", button, "O");
             rooms[rn]["board"][button] = "O";
             if (winning_combo("O", rooms[rn]["board"])) {
                 io.to(rooms[rn]["dict"]["2"]).emit("you_won", nicknames[rooms[rn]["dict"]["1"]]);
@@ -101,8 +82,7 @@ io.on('connection', function(socket) {
         })
     socket.on("wants-to-start", function(id) {
         var rn = Array.from(socket.rooms)[1]
-        socket.broadcast.emit("other_is_waiting", nicknames[id]);
-        //console.log(id + " wants to start, nickname: " + nicknames[id]);
+        socket.broadcast.to(rn).emit("other_is_waiting", nicknames[id]);
         if (rooms[rn]["dict"]["size"] == 0) {
             rooms[rn]["dict"]["1"] = socket.id;
             rooms[rn]["dict"]["size"] += 1;
